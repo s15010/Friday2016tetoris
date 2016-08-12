@@ -2,6 +2,8 @@ import pyglet
 import random
 from collections import deque
 
+from main import Main
+
 
 class Board(object):
     """
@@ -9,7 +11,7 @@ class Board(object):
     ボードは縦20横10マスの予定
     """
 
-    def __init__(self, x, y, grid_size, queue):
+    def __init__(self, x, y, queue, grid_size, background):
         super().__init__()
         self._x = x
         self._y = y
@@ -17,23 +19,30 @@ class Board(object):
         self.fixed_block = [[0] * 10] * 20
         self._queue = queue  # type: NextTetrominoQueue
         self._falling_tetromino = None  # type: Tetromino
+        self._background = background  # type: pyglet.image.AbstractImage
 
     def spawn_tetromino(self):
         self._falling_tetromino = self._queue.next()  # type: Tetromino
-        self._falling_tetromino.set_position(4, 21)
-
-        # でばぐよう
-        self._falling_tetromino.set_position(4, 10)
+        self._falling_tetromino.set_position(4, 20)
 
     def draw(self):
-        # ボーダー描画
-        # TODO: 千の引き方調べて後でボーダー書く
+        # ボードの背景
+        self._background.blit(self._x - 6, self._y - 6)
 
         # 落下中のテトロミノ描画
         for coord in self._falling_tetromino.board_coordinates:
-            self._falling_tetromino.get_block().blit(
-                coord[0] * self._grid_size + self._x,
-                coord[1] * self._grid_size + self._y)
+            if coord[0] < 10 and coord[1] < 20:
+                self._falling_tetromino.get_block().blit(
+                    coord[0] * self._grid_size + self._x,
+                    coord[1] * self._grid_size + self._y)
+
+    def send_action_falling_tetromino(self, action):
+        if action == Main.MOVE_DOWN:
+            self._falling_tetromino.move_down()
+        elif action == Main.MOVE_RIGHT:
+            self._falling_tetromino.move_right()
+        elif action == Main.MOVE_LEFT:
+            self._falling_tetromino.move_left()
 
 
 class TetrominoType(object):
