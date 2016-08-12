@@ -1,5 +1,6 @@
 import pyglet
-import game
+
+from unt import game
 
 # グローバルな定数たち
 WINDOW_WIDTH = 800

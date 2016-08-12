@@ -1,8 +1,9 @@
-import pyglet
 import random
 from collections import deque
 
-from main import Main
+import pyglet
+
+from unt.main import Main
 
 
 class Board(object):
