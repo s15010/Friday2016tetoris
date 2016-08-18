@@ -2,7 +2,7 @@ import pyglet
 
 import gametypes
 
-
+""" Global values"""
 WIDTH = 800
 HEIGHT = 600
 BOARD_X = 445
