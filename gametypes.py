@@ -1,107 +1,118 @@
 import random
+import warnings
 from collections import deque
 
 import pyglet
 
 
 class TetrominoType(object):
-    def __init__(self, block_image, local_block_coords_by_orientation):
-        self.blockImage = block_image
-        self.localBlockCoordsByOrientation = local_block_coords_by_orientation
+    TYPES = tuple()
+
+    def __init__(self, block_image, local_coords):
+        self._block_image = block_image
+        self._local_coords = local_coords
 
     @staticmethod
     def class_init(block_image, block_size):
-        cyan = block_image.get_region(x=0, y=0, width=block_size,
-                                      height=block_size)
-        yellow = block_image.get_region(x=block_size, y=0, width=block_size,
-                                        height=block_size)
-        green = block_image.get_region(x=block_size * 2, y=0, width=block_size,
-                                       height=block_size)
-        red = block_image.get_region(x=block_size * 3, y=0, width=block_size,
-                                     height=block_size)
-        blue = block_image.get_region(x=block_size * 4, y=0, width=block_size,
-                                      height=block_size)
-        orange = block_image.get_region(x=block_size * 5, y=0,
-                                        width=block_size, height=block_size)
-        purple = block_image.get_region(x=block_size * 6, y=0,
-                                        width=block_size, height=block_size)
+        """
+        block_imageからblock_sizeで8色のブロックを切り出す。
+        その後、7種のテトロミノタイプを定義してstaticメンバとして生成
+        :param block_image: ブロック画像
+        :param block_size: ブロックのサイズ
+        :return: None
+        """
+        dummy = block_image.get_region(block_size * 0, 0, block_size, block_size)
+        cyan = block_image.get_region(block_size * 1, 0, block_size, block_size)
+        yellow = block_image.get_region(block_size * 2, 0, block_size, block_size)
+        green = block_image.get_region(block_size * 3, 0, block_size, block_size)
+        red = block_image.get_region(block_size * 4, 0, block_size, block_size)
+        blue = block_image.get_region(block_size * 5, 0, block_size, block_size)
+        orange = block_image.get_region(block_size * 6, 0, block_size, block_size)
+        purple = block_image.get_region(block_size * 7, 0, block_size, block_size)
 
-        TetrominoType.TYPES = [
+        TetrominoType.TYPES = (
             # type I
             TetrominoType(cyan,
                           {
-                              Tetromino.RIGHT: [(0, 1), (1, 1), (2, 1),
-                                                (3, 1)],
-                              Tetromino.DOWN: [(1, 0), (1, 1), (1, 2), (1, 3)],
-                              Tetromino.LEFT: [(0, 2), (1, 2), (2, 2), (3, 2)],
-                              Tetromino.UP: [(2, 0), (2, 1), (2, 2), (2, 3)],
+                              Tetromino.RIGHT: ((0, 1), (1, 1), (2, 1),
+                                                (3, 1)),
+                              Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (1, 3)),
+                              Tetromino.LEFT: ((0, 2), (1, 2), (2, 2), (3, 2)),
+                              Tetromino.UP: ((2, 0), (2, 1), (2, 2), (2, 3)),
                           }
                           ),
             # type O
             TetrominoType(yellow,
                           {
-                              Tetromino.RIGHT: [(0, 0), (0, 1), (1, 0),
-                                                (1, 1)],
-                              Tetromino.DOWN: [(0, 0), (0, 1), (1, 0), (1, 1)],
-                              Tetromino.LEFT: [(0, 0), (0, 1), (1, 0), (1, 1)],
-                              Tetromino.UP: [(0, 0), (0, 1), (1, 0), (1, 1)],
+                              Tetromino.RIGHT: ((0, 0), (0, 1), (1, 0),
+                                                (1, 1)),
+                              Tetromino.DOWN: ((0, 0), (0, 1), (1, 0), (1, 1)),
+                              Tetromino.LEFT: ((0, 0), (0, 1), (1, 0), (1, 1)),
+                              Tetromino.UP: ((0, 0), (0, 1), (1, 0), (1, 1)),
                           }
                           ),
             # type S
             TetrominoType(green,
                           {
-                              Tetromino.RIGHT: [(1, 0), (1, 1), (2, 1),
-                                                (2, 2)],
-                              Tetromino.DOWN: [(2, 0), (1, 0), (1, 1), (0, 1)],
-                              Tetromino.LEFT: [(1, 0), (1, 1), (2, 1), (2, 2)],
-                              Tetromino.UP: [(2, 0), (1, 0), (1, 1), (0, 1)],
+                              Tetromino.RIGHT: ((1, 0), (1, 1), (2, 1),
+                                                (2, 2)),
+                              Tetromino.DOWN: ((2, 0), (1, 0), (1, 1), (0, 1)),
+                              Tetromino.LEFT: ((1, 0), (1, 1), (2, 1), (2, 2)),
+                              Tetromino.UP: ((2, 0), (1, 0), (1, 1), (0, 1)),
                           }
                           ),
             # type Z
             TetrominoType(red,
                           {
-                              Tetromino.RIGHT: [(2, 0), (2, 1), (1, 1),
-                                                (1, 2)],
-                              Tetromino.DOWN: [(2, 2), (1, 2), (1, 1), (0, 1)],
-                              Tetromino.LEFT: [(2, 0), (2, 1), (1, 1), (1, 2)],
-                              Tetromino.UP: [(2, 2), (1, 2), (1, 1), (0, 1)],
+                              Tetromino.RIGHT: ((2, 0), (2, 1), (1, 1),
+                                                (1, 2)),
+                              Tetromino.DOWN: ((2, 2), (1, 2), (1, 1), (0, 1)),
+                              Tetromino.LEFT: ((2, 0), (2, 1), (1, 1), (1, 2)),
+                              Tetromino.UP: ((2, 2), (1, 2), (1, 1), (0, 1)),
                           }
                           ),
             # type J
             TetrominoType(blue,
                           {
-                              Tetromino.RIGHT: [(2, 0), (1, 0), (1, 1),
-                                                (1, 2)],
-                              Tetromino.DOWN: [(2, 2), (2, 1), (1, 1), (0, 1)],
-                              Tetromino.LEFT: [(1, 0), (1, 1), (1, 2), (0, 2)],
-                              Tetromino.UP: [(0, 0), (0, 1), (1, 1), (2, 1)],
+                              Tetromino.RIGHT: ((2, 0), (1, 0), (1, 1),
+                                                (1, 2)),
+                              Tetromino.DOWN: ((2, 2), (2, 1), (1, 1), (0, 1)),
+                              Tetromino.LEFT: ((1, 0), (1, 1), (1, 2), (0, 2)),
+                              Tetromino.UP: ((0, 0), (0, 1), (1, 1), (2, 1)),
                           }
                           ),
             # type L
             TetrominoType(orange,
                           {
-                              Tetromino.RIGHT: [(0, 0), (1, 0), (1, 1),
-                                                (1, 2)],
-                              Tetromino.DOWN: [(2, 0), (2, 1), (1, 1), (0, 1)],
-                              Tetromino.LEFT: [(1, 0), (1, 1), (1, 2), (2, 2)],
-                              Tetromino.UP: [(2, 1), (1, 1), (0, 1), (0, 2)],
+                              Tetromino.RIGHT: ((0, 0), (1, 0), (1, 1),
+                                                (1, 2)),
+                              Tetromino.DOWN: ((2, 0), (2, 1), (1, 1), (0, 1)),
+                              Tetromino.LEFT: ((1, 0), (1, 1), (1, 2), (2, 2)),
+                              Tetromino.UP: ((2, 1), (1, 1), (0, 1), (0, 2)),
                           }
                           ),
             # type T
             TetrominoType(purple,
                           {
-                              Tetromino.RIGHT: [(2, 1), (1, 1), (0, 1),
-                                                (1, 2)],
-                              Tetromino.DOWN: [(1, 0), (1, 1), (1, 2), (0, 1)],
-                              Tetromino.LEFT: [(2, 1), (1, 1), (0, 1), (1, 0)],
-                              Tetromino.UP: [(1, 0), (1, 1), (1, 2), (2, 1)],
+                              Tetromino.RIGHT: ((2, 1), (1, 1), (0, 1),
+                                                (1, 2)),
+                              Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (0, 1)),
+                              Tetromino.LEFT: ((2, 1), (1, 1), (0, 1), (1, 0)),
+                              Tetromino.UP: ((1, 0), (1, 1), (1, 2), (2, 1)),
                           }
                           ),
-        ]
+        )
 
     @staticmethod
     def random_type():
+        warnings.warn("キューを使う方式に変更して下さい", category=DeprecationWarning, stacklevel=2)
         return random.choice(TetrominoType.TYPES)
+
+    def get_local_coords(self, orientation):
+        return self._local_coords[orientation]
+
+    def get_block(self):
+        return self._block_image
 
 
 class Tetromino(object):
@@ -111,13 +122,12 @@ class Tetromino(object):
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.tetrominoType = TetrominoType.random_type()
+        self.tetrominoType = TetrominoType.random_type()  # type: TetrominoType
         self.orientation = Tetromino.RIGHT
         self.blockBoardCoords = self.calc_block_board_coords()
 
     def calc_block_board_coords(self):
-        local_block_coords = self.tetrominoType.localBlockCoordsByOrientation[
-            self.orientation]
+        local_block_coords = self.tetrominoType.get_local_coords(self.orientation)
         grid_coords = []
         for coord in local_block_coords:
             grid_coord = (coord[0] + self.x, coord[1] + self.y)
@@ -187,7 +197,7 @@ class Tetromino(object):
         return len(self.blockBoardCoords) > 0
 
     def draw(self, screen_coords):
-        image = self.tetrominoType.blockImage
+        image = self.tetrominoType.get_block()
         for coords in screen_coords:
             image.blit(coords[0], coords[1])
 
