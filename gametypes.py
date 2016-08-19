@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 import pyglet
 
@@ -428,3 +429,37 @@ class Game(object):
         self.backgroundImage.blit(0, 0)
         self.board.draw()
         self.infoDisplay.draw()
+
+
+class NextTetrominoQueue(object):
+    """
+    Nextブロックを管理するキュー
+    """
+
+    def __init__(self, set_count=2):
+        self._set_count = set_count
+        self._queue = deque()  # type: deque
+        self.generate_tetromino()
+
+    def generate_tetromino(self):
+        """
+        Tetrominoをset_countセット作ってシャッフルしてキューにぶち込む
+        """
+        tetromino_type_set = list(TetrominoType.TYPES[:] * self._set_count)
+        for a in range(3):
+            random.shuffle(tetromino_type_set)
+
+        for tetromino_type in tetromino_type_set:
+            self._queue.append(Tetromino(tetromino_type))
+
+    def get(self, index):
+        return self._queue[index]  # type: Tetromino
+
+    def next(self):
+        if len(self._queue) < 5:
+            self.generate_tetromino()
+
+        return self._queue.popleft()  # type: Tetromino
+
+    def draw(self):
+        pass

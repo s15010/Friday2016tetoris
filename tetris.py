@@ -5,8 +5,8 @@ import gametypes
 """ Global values"""
 WIDTH = 800
 HEIGHT = 600
-BOARD_X = 445
-BOARD_Y = 13
+BOARD_X = 200
+BOARD_Y = 50
 GRID_WIDTH = 10
 GRID_HEIGHT = 20
 BLOCK_SIZE = 25
@@ -17,7 +17,7 @@ window.set_vsync(False)
 """ load resources """
 pyglet.resource.path = ['res']
 pyglet.resource.reindex()
-backgroundImage = pyglet.resource.image('background.jpg')
+backgroundImage = pyglet.resource.image('background.png')
 blocksImage = pyglet.resource.image('blocks.png')
 gametypes.TetrominoType.class_init(blocksImage, BLOCK_SIZE)
 
