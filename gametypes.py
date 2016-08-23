@@ -1,3 +1,8 @@
+"""
+Pygletを使ったテトリス。実装部分
+
+
+"""
 import random
 import warnings
 from collections import deque
@@ -120,50 +125,53 @@ class Tetromino(object):
     CLOCKWISE_ROTATIONS = {RIGHT: DOWN, DOWN: LEFT, LEFT: UP, UP: RIGHT}
 
     def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.tetrominoType = TetrominoType.random_type()  # type: TetrominoType
-        self.orientation = Tetromino.RIGHT
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._x = 0
+        self._y = 0
+        self._tetromino_type = TetrominoType.random_type()  # type: TetrominoType
+        self._orientation = Tetromino.RIGHT
+        self._block_board_coords = self.calc_block_board_coords()
 
     def calc_block_board_coords(self):
-        local_block_coords = self.tetrominoType.get_local_coords(self.orientation)
+        local_block_coords = self._tetromino_type.get_local_coords(self._orientation)
         grid_coords = []
         for coord in local_block_coords:
-            grid_coord = (coord[0] + self.x, coord[1] + self.y)
+            grid_coord = (coord[0] + self._x, coord[1] + self._y)
             grid_coords.append(grid_coord)
         return grid_coords
 
+    def get_block_board_coords(self):
+        return self._block_board_coords
+
     def set_position(self, x, y):
-        self.x = x
-        self.y = y
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._x = x
+        self._y = y
+        self._block_board_coords = self.calc_block_board_coords()
 
     def move_down(self):
-        self.y -= 1
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._y -= 1
+        self._block_board_coords = self.calc_block_board_coords()
 
     def move_up(self):
-        self.y += 1
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._y += 1
+        self._block_board_coords = self.calc_block_board_coords()
 
     def move_left(self):
-        self.x -= 1
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._x -= 1
+        self._block_board_coords = self.calc_block_board_coords()
 
     def move_right(self):
-        self.x += 1
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._x += 1
+        self._block_board_coords = self.calc_block_board_coords()
 
     def rotate_clockwise(self):
-        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._orientation = Tetromino.CLOCKWISE_ROTATIONS[self._orientation]
+        self._block_board_coords = self.calc_block_board_coords()
 
     def rotate_counterclockwise(self):
-        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
-        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
-        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
-        self.blockBoardCoords = self.calc_block_board_coords()
+        self._orientation = Tetromino.CLOCKWISE_ROTATIONS[self._orientation]
+        self._orientation = Tetromino.CLOCKWISE_ROTATIONS[self._orientation]
+        self._orientation = Tetromino.CLOCKWISE_ROTATIONS[self._orientation]
+        self._block_board_coords = self.calc_block_board_coords()
 
     def command(self, command):
         if command == Input.MOVE_DOWN:
@@ -187,17 +195,17 @@ class Tetromino(object):
 
     def clear_row_and_adjust_down(self, board_grid_row):
         new_block_board_coords = []
-        for coord in self.blockBoardCoords:
+        for coord in self._block_board_coords:
             if coord[1] > board_grid_row:
                 adjusted_coord = (coord[0], coord[1] - 1)
                 new_block_board_coords.append(adjusted_coord)
             if coord[1] < board_grid_row:
                 new_block_board_coords.append(coord)
-        self.blockBoardCoords = new_block_board_coords
-        return len(self.blockBoardCoords) > 0
+        self._block_board_coords = new_block_board_coords
+        return len(self._block_board_coords) > 0
 
     def draw(self, screen_coords):
-        image = self.tetrominoType.get_block()
+        image = self._tetromino_type.get_block()
         for coords in screen_coords:
             image.blit(coords[0], coords[1])
 
@@ -234,8 +242,8 @@ class Board(object):
     def is_valid_position(self):
         non_falling_block_coords = []
         for tetromino in self.tetrominos:
-            non_falling_block_coords.extend(tetromino.blockBoardCoords)
-        for coord in self.fallingTetromino.blockBoardCoords:
+            non_falling_block_coords.extend(tetromino.get_block_board_coords())
+        for coord in self.fallingTetromino.get_block_board_coords():
             out_of_bounds = coord[0] < 0 or coord[0] >= self.gridWidth or \
                             coord[1] < 0
             overlapping = coord in non_falling_block_coords
@@ -246,7 +254,7 @@ class Board(object):
     def find_full_rows(self):
         non_falling_block_coords = []
         for tetromino in self.tetrominos:
-            non_falling_block_coords.extend(tetromino.blockBoardCoords)
+            non_falling_block_coords.extend(tetromino.get_block_board_coords())
 
         row_counts = {}
         for i in range(self.gridHeight + Board.STARTING_ZONE_HEIGHT):
@@ -288,7 +296,7 @@ class Board(object):
         return num_cleared_rows, game_lost
 
     def is_in_start_zone(self, tetromino):
-        for coords in tetromino.blockBoardCoords:
+        for coords in tetromino.get_block_board_coords():
             if coords[1] >= self.gridHeight:
                 return True
         return False
@@ -304,15 +312,15 @@ class Board(object):
     def draw(self):
         for tetromino in self.tetrominos:
             screen_coords = self.grid_coords_to_screen_coords(
-                tetromino.blockBoardCoords)
+                tetromino.get_block_board_coords())
             tetromino.draw(screen_coords)
 
         screen_coords = self.grid_coords_to_screen_coords(
-            self.fallingTetromino.blockBoardCoords)
+            self.fallingTetromino.get_block_board_coords())
         self.fallingTetromino.draw(screen_coords)
 
         screen_coords = self.grid_coords_to_screen_coords(
-            self.nextTetromino.blockBoardCoords)
+            self.nextTetromino._block_board_coords)
         self.nextTetromino.draw(screen_coords)
 
 
