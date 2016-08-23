@@ -124,10 +124,13 @@ class Tetromino(object):
     RIGHT, DOWN, LEFT, UP = range(4)
     CLOCKWISE_ROTATIONS = {RIGHT: DOWN, DOWN: LEFT, LEFT: UP, UP: RIGHT}
 
-    def __init__(self):
+    def __init__(self, type=None):
         self._x = 0
         self._y = 0
-        self._tetromino_type = TetrominoType.random_type()  # type: TetrominoType
+        if type is None:
+            self._tetromino_type = TetrominoType.random_type()  # type: TetrominoType
+        else:
+            self._tetromino_type = type
         self._orientation = Tetromino.RIGHT
         self._block_board_coords = self.calc_block_board_coords()
 
@@ -212,39 +215,35 @@ class Tetromino(object):
 
 class Board(object):
     STARTING_ZONE_HEIGHT = 4
-    NEXT_X = -5
-    NEXT_Y = 20
 
-    def __init__(self, x, y, grid_width, grid_height, block_size):
-        self.x = x
-        self.y = y
-        self.gridWidth = grid_width
-        self.gridHeight = grid_height
-        self.blockSize = block_size
-        self.spawnX = int(grid_width * 1 / 3)
-        self.spawnY = grid_height
-        self.nextTetromino = Tetromino()
-        self.fallingTetromino = None
+    def __init__(self, x, y, grid_width, grid_height, block_size, queue):
+        self._x = x
+        self._y = y
+        self._grid_width = grid_width
+        self._grid_height = grid_height
+        self._block_size = block_size
+        self._spawn_x = int(grid_width * 1 / 3)
+        self._spawn_y = grid_height
+        self._queue = queue
+        self._falling_tetromino = None
         self.spawn_tetromino()
-        self.tetrominos = []
+        self._tetromino_list = []
 
     def spawn_tetromino(self):
-        self.fallingTetromino = self.nextTetromino
-        self.nextTetromino = Tetromino()
-        self.fallingTetromino.set_position(self.spawnX, self.spawnY)
-        self.nextTetromino.set_position(Board.NEXT_X, Board.NEXT_Y)
+        self._falling_tetromino = self._queue.next()
+        self._falling_tetromino.set_position(self._spawn_x, self._spawn_y)
 
     def command_falling_tetromino(self, command):
-        self.fallingTetromino.command(command)
+        self._falling_tetromino.command(command)
         if not self.is_valid_position():
-            self.fallingTetromino.undo_command(command)
+            self._falling_tetromino.undo_command(command)
 
     def is_valid_position(self):
         non_falling_block_coords = []
-        for tetromino in self.tetrominos:
+        for tetromino in self._tetromino_list:
             non_falling_block_coords.extend(tetromino.get_block_board_coords())
-        for coord in self.fallingTetromino.get_block_board_coords():
-            out_of_bounds = coord[0] < 0 or coord[0] >= self.gridWidth or \
+        for coord in self._falling_tetromino.get_block_board_coords():
+            out_of_bounds = coord[0] < 0 or coord[0] >= self._grid_width or \
                             coord[1] < 0
             overlapping = coord in non_falling_block_coords
             if out_of_bounds or overlapping:
@@ -253,27 +252,27 @@ class Board(object):
 
     def find_full_rows(self):
         non_falling_block_coords = []
-        for tetromino in self.tetrominos:
+        for tetromino in self._tetromino_list:
             non_falling_block_coords.extend(tetromino.get_block_board_coords())
 
         row_counts = {}
-        for i in range(self.gridHeight + Board.STARTING_ZONE_HEIGHT):
+        for i in range(self._grid_height + Board.STARTING_ZONE_HEIGHT):
             row_counts[i] = 0
         for coord in non_falling_block_coords:
             row_counts[coord[1]] += 1
 
         full_rows = []
         for row in row_counts:
-            if row_counts[row] == self.gridWidth:
+            if row_counts[row] == self._grid_width:
                 full_rows.append(row)
         return full_rows
 
     def clear_row(self, grid_row):
         tetrominos = []
-        for tetromino in self.tetrominos:
+        for tetromino in self._tetromino_list:
             if tetromino.clear_row_and_adjust_down(grid_row):
                 tetrominos.append(tetromino)
-        self.tetrominos = tetrominos
+        self._tetromino_list = tetrominos
 
     def clear_rows(self, grid_rows):
         grid_rows.sort(reverse=True)
@@ -283,13 +282,13 @@ class Board(object):
     def update_tick(self):
         num_cleared_rows = 0
         game_lost = False
-        self.fallingTetromino.command(Input.MOVE_DOWN)
+        self._falling_tetromino.command(Input.MOVE_DOWN)
         if not self.is_valid_position():
-            self.fallingTetromino.undo_command(Input.MOVE_DOWN)
-            self.tetrominos.append(self.fallingTetromino)
+            self._falling_tetromino.undo_command(Input.MOVE_DOWN)
+            self._tetromino_list.append(self._falling_tetromino)
             full_rows = self.find_full_rows()
             self.clear_rows(full_rows)
-            game_lost = self.is_in_start_zone(self.fallingTetromino)
+            game_lost = self.is_in_start_zone(self._falling_tetromino)
             if not game_lost:
                 self.spawn_tetromino()
             num_cleared_rows = len(full_rows)
@@ -297,31 +296,27 @@ class Board(object):
 
     def is_in_start_zone(self, tetromino):
         for coords in tetromino.get_block_board_coords():
-            if coords[1] >= self.gridHeight:
+            if coords[1] >= self._grid_height:
                 return True
         return False
 
     def grid_coords_to_screen_coords(self, coords):
         screen_coords = []
         for coord in coords:
-            coord = (self.x + coord[0] * self.blockSize,
-                     self.y + coord[1] * self.blockSize)
+            coord = (self._x + coord[0] * self._block_size,
+                     self._y + coord[1] * self._block_size)
             screen_coords.append(coord)
         return screen_coords
 
     def draw(self):
-        for tetromino in self.tetrominos:
+        for tetromino in self._tetromino_list:
             screen_coords = self.grid_coords_to_screen_coords(
                 tetromino.get_block_board_coords())
             tetromino.draw(screen_coords)
 
         screen_coords = self.grid_coords_to_screen_coords(
-            self.fallingTetromino.get_block_board_coords())
-        self.fallingTetromino.draw(screen_coords)
-
-        screen_coords = self.grid_coords_to_screen_coords(
-            self.nextTetromino._block_board_coords)
-        self.nextTetromino.draw(screen_coords)
+            self._falling_tetromino.get_block_board_coords())
+        self._falling_tetromino.draw(screen_coords)
 
 
 class InfoDisplay(object):
@@ -454,7 +449,7 @@ class NextTetrominoQueue(object):
     Nextブロックを管理するキュー
     """
 
-    def __init__(self, set_count=2):
+    def __init__(self, set_count=3):
         self._set_count = set_count
         self._queue = deque()  # type: deque
         self.generate_tetromino()
