@@ -22,11 +22,11 @@ blocksImage = pyglet.resource.image('blocks.png')
 gametypes.TetrominoType.class_init(blocksImage, BLOCK_SIZE)
 
 """ init game state """
-queue = gametypes.NextTetrominoQueue()
+queue = gametypes.NextTetrominoQueue(500, 200, BLOCK_SIZE)
 board = gametypes.Board(BOARD_X, BOARD_Y, GRID_WIDTH, GRID_HEIGHT, BLOCK_SIZE, queue)
 infoDisplay = gametypes.InfoDisplay(window)
 input = gametypes.Input()
-game = gametypes.Game(board, infoDisplay, input, backgroundImage)
+game = gametypes.Game(board, infoDisplay, input, backgroundImage, queue)
 
 
 @window.event

@@ -405,7 +405,8 @@ class GameTick(object):
 
 
 class Game(object):
-    def __init__(self, board, info_display, key_input, background_image):
+    def __init__(self, board, info_display, key_input, background_image, queue):
+        self._queue = queue
         self.board = board
         self.infoDisplay = info_display
         self.input = key_input
@@ -441,6 +442,7 @@ class Game(object):
     def draw(self):
         self.backgroundImage.blit(0, 0)
         self.board.draw()
+        self._queue.draw()
         self.infoDisplay.draw()
 
 
@@ -449,8 +451,11 @@ class NextTetrominoQueue(object):
     Nextブロックを管理するキュー
     """
 
-    def __init__(self, set_count=3):
+    def __init__(self, x, y, block_size, set_count=3):
+        self._x = x
+        self._y = y
         self._set_count = set_count
+        self._block_size = block_size
         self._queue = deque()  # type: deque
         self.generate_tetromino()
 
@@ -474,5 +479,17 @@ class NextTetrominoQueue(object):
 
         return self._queue.popleft()  # type: Tetromino
 
+    def grid_coords_to_screen_coords(self, coords):
+        screen_coords = []
+        for coord in coords:
+            coord = (self._x + coord[0] * self._block_size,
+                     self._y + coord[1] * self._block_size)
+            screen_coords.append(coord)
+        return screen_coords
+
     def draw(self):
-        pass
+        for i in range(3):
+            self._queue[i].set_position(0, 4 * (2 - i))
+            screen_coords = self.grid_coords_to_screen_coords(
+                self._queue[i].get_block_board_coords())
+            self._queue[i].draw(screen_coords)
