@@ -39,71 +39,65 @@ class TetrominoType(object):
             # type I
             TetrominoType(cyan,
                           {
-                              Tetromino.RIGHT: ((0, 1), (1, 1), (2, 1),
-                                                (3, 1)),
+                              Tetromino.RIGHT: ((0, 1), (1, 1), (2, 1), (3, 1)),
                               Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (1, 3)),
-                              Tetromino.LEFT: ((0, 2), (1, 2), (2, 2), (3, 2)),
-                              Tetromino.UP: ((2, 0), (2, 1), (2, 2), (2, 3)),
+                              Tetromino.LEFT: ((0, 1), (1, 1), (2, 1), (3, 1)),
+                              Tetromino.UP: ((1, 0), (1, 1), (1, 2), (1, 3)),
                           }
                           ),
             # type O
             TetrominoType(yellow,
                           {
-                              Tetromino.RIGHT: ((0, 0), (0, 1), (1, 0),
-                                                (1, 1)),
-                              Tetromino.DOWN: ((0, 0), (0, 1), (1, 0), (1, 1)),
-                              Tetromino.LEFT: ((0, 0), (0, 1), (1, 0), (1, 1)),
-                              Tetromino.UP: ((0, 0), (0, 1), (1, 0), (1, 1)),
+                              Tetromino.RIGHT: ((1, 0), (1, 1), (2, 0), (2, 1)),
+                              Tetromino.DOWN: ((1, 0), (1, 1), (2, 0), (2, 1)),
+                              Tetromino.LEFT: ((1, 0), (1, 1), (2, 0), (2, 1)),
+                              Tetromino.UP: ((1, 0), (1, 1), (2, 0), (2, 1)),
                           }
                           ),
             # type S
             TetrominoType(green,
                           {
-                              Tetromino.RIGHT: ((1, 0), (1, 1), (2, 1),
-                                                (2, 2)),
-                              Tetromino.DOWN: ((2, 0), (1, 0), (1, 1), (0, 1)),
-                              Tetromino.LEFT: ((1, 0), (1, 1), (2, 1), (2, 2)),
-                              Tetromino.UP: ((2, 0), (1, 0), (1, 1), (0, 1)),
+                              Tetromino.RIGHT: ((0, 0), (1, 0), (1, 1), (2, 1)),
+                              Tetromino.DOWN: ((0, 2), (0, 1), (1, 1), (1, 0)),
+                              Tetromino.LEFT: ((0, 0), (1, 0), (1, 1), (2, 1)),
+                              Tetromino.UP: ((0, 2), (0, 1), (1, 1), (1, 0)),
                           }
                           ),
             # type Z
             TetrominoType(red,
                           {
-                              Tetromino.RIGHT: ((2, 0), (2, 1), (1, 1),
-                                                (1, 2)),
-                              Tetromino.DOWN: ((2, 2), (1, 2), (1, 1), (0, 1)),
-                              Tetromino.LEFT: ((2, 0), (2, 1), (1, 1), (1, 2)),
-                              Tetromino.UP: ((2, 2), (1, 2), (1, 1), (0, 1)),
+                              Tetromino.RIGHT: ((0, 1), (1, 1), (1, 0), (2, 0)),
+                              Tetromino.DOWN: ((0, 0), (0, 1), (1, 1), (1, 2)),
+                              Tetromino.LEFT: ((0, 1), (1, 1), (1, 0), (2, 0)),
+                              Tetromino.UP: ((0, 0), (0, 1), (1, 1), (1, 2)),
                           }
                           ),
             # type J
             TetrominoType(blue,
                           {
-                              Tetromino.RIGHT: ((2, 0), (1, 0), (1, 1),
-                                                (1, 2)),
-                              Tetromino.DOWN: ((2, 2), (2, 1), (1, 1), (0, 1)),
-                              Tetromino.LEFT: ((1, 0), (1, 1), (1, 2), (0, 2)),
-                              Tetromino.UP: ((0, 0), (0, 1), (1, 1), (2, 1)),
+                              Tetromino.RIGHT: ((0, 2), (0, 1), (1, 1), (2, 1)),
+                              Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (2, 2)),
+                              Tetromino.LEFT: ((0, 1), (1, 1), (2, 1), (2, 0)),
+                              Tetromino.UP: ((0, 0), (1, 0), (1, 1), (1, 2)),
                           }
                           ),
             # type L
             TetrominoType(orange,
                           {
-                              Tetromino.RIGHT: ((0, 0), (1, 0), (1, 1),
-                                                (1, 2)),
-                              Tetromino.DOWN: ((2, 0), (2, 1), (1, 1), (0, 1)),
-                              Tetromino.LEFT: ((1, 0), (1, 1), (1, 2), (2, 2)),
-                              Tetromino.UP: ((2, 1), (1, 1), (0, 1), (0, 2)),
+                              Tetromino.RIGHT: ((0, 1), (1, 1), (2, 1), (2, 2)),
+                              Tetromino.DOWN: ((1, 2), (1, 1), (1, 0), (2, 0)),
+                              Tetromino.LEFT: ((0, 0), (0, 1), (1, 1), (2, 1)),
+                              Tetromino.UP: ((0, 2), (1, 2), (1, 1), (1, 0)),
                           }
+
                           ),
             # type T
             TetrominoType(purple,
                           {
-                              Tetromino.RIGHT: ((2, 1), (1, 1), (0, 1),
-                                                (1, 2)),
-                              Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (0, 1)),
-                              Tetromino.LEFT: ((2, 1), (1, 1), (0, 1), (1, 0)),
-                              Tetromino.UP: ((1, 0), (1, 1), (1, 2), (2, 1)),
+                              Tetromino.RIGHT: ((0, 1), (1, 1), (2, 1), (1, 2)),
+                              Tetromino.DOWN: ((1, 0), (1, 1), (1, 2), (2, 1)),
+                              Tetromino.LEFT: ((0, 1), (1, 1), (2, 1), (1, 0)),
+                              Tetromino.UP: ((1, 0), (1, 1), (1, 2), (0, 1)),
                           }
                           ),
         )
@@ -450,6 +444,7 @@ class NextTetrominoQueue(object):
     """
     Nextブロックを管理するキュー
     """
+    NEXT_COUNT = 3
 
     def __init__(self, x, y, block_size, set_count=3):
         self._x = x
@@ -488,8 +483,8 @@ class NextTetrominoQueue(object):
         return screen_coords
 
     def draw(self):
-        for i in range(3):
-            self._queue[i].set_position(0, 4 * (2 - i))
+        for i in range(self.NEXT_COUNT):
+            self._queue[i].set_position(0, 4 * (self.NEXT_COUNT - i - 1))
             screen_coords = self.grid_coords_to_screen_coords(
                 self._queue[i].get_block_board_coords())
             self._queue[i].draw(screen_coords)
