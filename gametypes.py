@@ -171,23 +171,23 @@ class Tetromino(object):
         self._block_board_coords = self.calc_block_board_coords()
 
     def command(self, command):
-        if command == Input.MOVE_DOWN:
+        if command == InputProcessor.MOVE_DOWN:
             self.move_down()
-        elif command == Input.MOVE_RIGHT:
+        elif command == InputProcessor.MOVE_RIGHT:
             self.move_right()
-        elif command == Input.MOVE_LEFT:
+        elif command == InputProcessor.MOVE_LEFT:
             self.move_left()
-        elif command == Input.ROTATE_CLOCKWISE:
+        elif command == InputProcessor.ROTATE_CLOCKWISE:
             self.rotate_clockwise()
 
     def undo_command(self, command):
-        if command == Input.MOVE_DOWN:
+        if command == InputProcessor.MOVE_DOWN:
             self.move_up()
-        elif command == Input.MOVE_RIGHT:
+        elif command == InputProcessor.MOVE_RIGHT:
             self.move_left()
-        elif command == Input.MOVE_LEFT:
+        elif command == InputProcessor.MOVE_LEFT:
             self.move_right()
-        elif command == Input.ROTATE_CLOCKWISE:
+        elif command == InputProcessor.ROTATE_CLOCKWISE:
             self.rotate_counterclockwise()
 
     def clear_row_and_adjust_down(self, board_grid_row):
@@ -276,9 +276,9 @@ class Board(object):
     def update_tick(self):
         num_cleared_rows = 0
         game_lost = False
-        self._falling_tetromino.command(Input.MOVE_DOWN)
+        self._falling_tetromino.command(InputProcessor.MOVE_DOWN)
         if not self.is_valid_position():
-            self._falling_tetromino.undo_command(Input.MOVE_DOWN)
+            self._falling_tetromino.undo_command(InputProcessor.MOVE_DOWN)
             self._tetromino_list.append(self._falling_tetromino)
             full_rows = self.find_full_rows()
             self.clear_rows(full_rows)
@@ -351,7 +351,7 @@ class InfoDisplay(object):
             self.gameoverLabel.draw()
 
 
-class Input(object):
+class InputProcessor(object):
     TOGGLE_PAUSE, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_CLOCKWISE = range(5)
 
     def __init__(self):
@@ -359,17 +359,17 @@ class Input(object):
 
     def process_keypress(self, symbol, modifiers):
         if symbol == pyglet.window.key.SPACE:
-            self.action = Input.TOGGLE_PAUSE
+            self.action = InputProcessor.TOGGLE_PAUSE
 
     def process_text_motion(self, motion):
         if motion == pyglet.window.key.MOTION_LEFT:
-            self.action = Input.MOVE_LEFT
+            self.action = InputProcessor.MOVE_LEFT
         elif motion == pyglet.window.key.MOTION_RIGHT:
-            self.action = Input.MOVE_RIGHT
+            self.action = InputProcessor.MOVE_RIGHT
         elif motion == pyglet.window.key.MOTION_UP:
-            self.action = Input.ROTATE_CLOCKWISE
+            self.action = InputProcessor.ROTATE_CLOCKWISE
         elif motion == pyglet.window.key.MOTION_DOWN:
-            self.action = Input.MOVE_DOWN
+            self.action = InputProcessor.MOVE_DOWN
 
     def consume(self):
         action = self.action
@@ -424,10 +424,10 @@ class Game(object):
             self.infoDisplay.showGameoverLabel = True
         else:
             command = self.input.consume()
-            if command == Input.TOGGLE_PAUSE:
+            if command == InputProcessor.TOGGLE_PAUSE:
                 self.toggle_pause()
             if not self.paused:
-                if command and command != Input.TOGGLE_PAUSE:
+                if command and command != InputProcessor.TOGGLE_PAUSE:
                     self.board.command_falling_tetromino(command)
                 if self.ticker.is_tick(self.tickSpeed):
                     rows_cleared, self.lost = self.board.update_tick()
