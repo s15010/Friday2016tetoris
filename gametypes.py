@@ -222,12 +222,16 @@ class Board(object):
         self._falling_tetromino = None
         self.spawn_tetromino()
         self._tetromino_list = []
+        self._is_after_move = False
 
     def spawn_tetromino(self):
         self._falling_tetromino = self._queue.next()
         self._falling_tetromino.set_position(self._spawn_x, self._spawn_y)
 
     def command_falling_tetromino(self, command):
+        if command != InputProcessor.MOVE_DOWN:
+            self._is_after_move = True
+
         self._falling_tetromino.command(command)
         if not self.is_valid_position():
             self._falling_tetromino.undo_command(command)
@@ -277,15 +281,19 @@ class Board(object):
         num_cleared_rows = 0
         game_lost = False
         self._falling_tetromino.command(InputProcessor.MOVE_DOWN)
+
         if not self.is_valid_position():
             self._falling_tetromino.undo_command(InputProcessor.MOVE_DOWN)
-            self._tetromino_list.append(self._falling_tetromino)
-            full_rows = self.find_full_rows()
-            self.clear_rows(full_rows)
-            game_lost = self.is_in_start_zone(self._falling_tetromino)
-            if not game_lost:
-                self.spawn_tetromino()
-            num_cleared_rows = len(full_rows)
+            if self._is_after_move:
+                self._is_after_move = False
+            else:
+                self._tetromino_list.append(self._falling_tetromino)
+                full_rows = self.find_full_rows()
+                self.clear_rows(full_rows)
+                game_lost = self.is_in_start_zone(self._falling_tetromino)
+                if not game_lost:
+                    self.spawn_tetromino()
+                num_cleared_rows = len(full_rows)
         return num_cleared_rows, game_lost
 
     def is_in_start_zone(self, tetromino):
@@ -360,14 +368,14 @@ class InputProcessor(object):
     def process_keypress(self, symbol, modifiers):
         if symbol == pyglet.window.key.SPACE:
             self.action = InputProcessor.TOGGLE_PAUSE
+        elif symbol == pyglet.window.key.LSHIFT:
+            self.action = InputProcessor.ROTATE_CLOCKWISE
 
     def process_text_motion(self, motion):
         if motion == pyglet.window.key.MOTION_LEFT:
             self.action = InputProcessor.MOVE_LEFT
         elif motion == pyglet.window.key.MOTION_RIGHT:
             self.action = InputProcessor.MOVE_RIGHT
-        elif motion == pyglet.window.key.MOTION_UP:
-            self.action = InputProcessor.ROTATE_CLOCKWISE
         elif motion == pyglet.window.key.MOTION_DOWN:
             self.action = InputProcessor.MOVE_DOWN
 
