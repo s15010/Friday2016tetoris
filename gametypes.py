@@ -322,41 +322,47 @@ class Board(object):
 
 
 class InfoDisplay(object):
-    ROWS_CLEARED_X = 70
-    ROWS_CLEARED_Y = 550
-
-    def __init__(self, window):
-        self.rowsClearedLabel = pyglet.text.Label('Rows cleared: 0',
-                                                  font_size=14,
-                                                  x=InfoDisplay.ROWS_CLEARED_X,
-                                                  y=InfoDisplay.ROWS_CLEARED_Y
-                                                  )
-        self.pausedLabel = pyglet.text.Label('PAUSED',
-                                             font_size=32,
-                                             x=window.width // 2,
-                                             y=window.height // 2,
-                                             anchor_x='center',
-                                             anchor_y='center'
-                                             )
-        self.gameoverLabel = pyglet.text.Label('GAME OVER',
+    def __init__(self, window, score_x, score_y, lines_x, lines_y):
+        self._score_label = pyglet.text.Label('{0:07d}'.format(0),
+                                              font_size=18,
+                                              x=score_x,
+                                              y=score_y
+                                              )
+        self._rows_cleared_label = pyglet.text.Label('{0:07d}'.format(0),
+                                                     font_size=18,
+                                                     x=lines_x,
+                                                     y=lines_y
+                                                     )
+        self._paused_label = pyglet.text.Label('PAUSED',
                                                font_size=32,
                                                x=window.width // 2,
                                                y=window.height // 2,
                                                anchor_x='center',
                                                anchor_y='center'
                                                )
-        self.showPausedLabel = False
-        self.showGameoverLabel = False
+        self._game_over_label = pyglet.text.Label('GAME OVER',
+                                                  font_size=32,
+                                                  x=window.width // 2,
+                                                  y=window.height // 2,
+                                                  anchor_x='center',
+                                                  anchor_y='center'
+                                                  )
+        self._show_paused_label = False
+        self._show_game_over_label = False
 
     def set_rows_cleared(self, num_rows_cleared):
-        self.rowsClearedLabel.text = 'Rows cleared: ' + str(num_rows_cleared)
+        self._rows_cleared_label.text = '{0:07d}'.format(num_rows_cleared)
+
+    def set_score(self, score):
+        self._score_label.text = '{0:07d}'.format(score)
 
     def draw(self):
-        self.rowsClearedLabel.draw()
-        if self.showPausedLabel:
-            self.pausedLabel.draw()
-        if self.showGameoverLabel:
-            self.gameoverLabel.draw()
+        self._rows_cleared_label.draw()
+        self._score_label.draw()
+        if self._show_paused_label:
+            self._paused_label.draw()
+        if self._show_game_over_label:
+            self._game_over_label.draw()
 
 
 class InputProcessor(object):
@@ -409,43 +415,54 @@ class GameTick(object):
 class Game(object):
     def __init__(self, board, info_display, key_input, background_image, queue):
         self._queue = queue
-        self.board = board
-        self.infoDisplay = info_display
-        self.input = key_input
-        self.backgroundImage = background_image
-        self.paused = False
-        self.lost = False
-        self.numRowsCleared = 0
-        self.tickSpeed = 0.6
-        self.ticker = GameTick()
+        self._board = board
+        self._info_display = info_display
+        self._input = key_input
+        self._background_image = background_image
+        self._paused = False
+        self._lost = False
+        self._num_rows_cleared = 0
+        self._score = 0
+        self._tick_speed = 0.6
+        self._ticker = GameTick()
 
     def add_rows_cleared(self, rows_cleared):
-        self.numRowsCleared += rows_cleared
-        self.infoDisplay.set_rows_cleared(self.numRowsCleared)
+        self._num_rows_cleared += rows_cleared
+        if rows_cleared == 1:
+            self._score += 1
+        elif rows_cleared == 2:
+            self._score += 2
+        elif rows_cleared == 3:
+            self._score += 5
+        elif rows_cleared == 4:
+            self._score += 8
+
+        self._info_display.set_rows_cleared(self._num_rows_cleared)
+        self._info_display.set_score(self._score)
 
     def toggle_pause(self):
-        self.paused = not self.paused
-        self.infoDisplay.showPausedLabel = self.paused
+        self._paused = not self._paused
+        self._info_display.showPausedLabel = self._paused
 
     def update(self):
-        if self.lost:
-            self.infoDisplay.showGameoverLabel = True
+        if self._lost:
+            self._info_display.showGameoverLabel = True
         else:
-            command = self.input.consume()
+            command = self._input.consume()
             if command == InputProcessor.TOGGLE_PAUSE:
                 self.toggle_pause()
-            if not self.paused:
+            if not self._paused:
                 if command and command != InputProcessor.TOGGLE_PAUSE:
-                    self.board.command_falling_tetromino(command)
-                if self.ticker.is_tick(self.tickSpeed):
-                    rows_cleared, self.lost = self.board.update_tick()
+                    self._board.command_falling_tetromino(command)
+                if self._ticker.is_tick(self._tick_speed):
+                    rows_cleared, self._lost = self._board.update_tick()
                     self.add_rows_cleared(rows_cleared)
 
     def draw(self):
-        self.backgroundImage.blit(0, 0)
-        self.board.draw()
+        self._background_image.blit(0, 0)
+        self._board.draw()
         self._queue.draw()
-        self.infoDisplay.draw()
+        self._info_display.draw()
 
 
 class NextTetrominoQueue(object):
