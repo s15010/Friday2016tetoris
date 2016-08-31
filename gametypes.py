@@ -1,7 +1,6 @@
 """
 Pygletを使ったテトリス。実装部分
 
-
 """
 import random
 import warnings
@@ -118,13 +117,13 @@ class Tetromino(object):
     RIGHT, DOWN, LEFT, UP = range(4)
     CLOCKWISE_ROTATIONS = {RIGHT: DOWN, DOWN: LEFT, LEFT: UP, UP: RIGHT}
 
-    def __init__(self, type=None):
+    def __init__(self, tetromino_type=None):
         self._x = 0
         self._y = 0
-        if type is None:
+        if tetromino_type is None:
             self._tetromino_type = TetrominoType.random_type()  # type: TetrominoType
         else:
-            self._tetromino_type = type
+            self._tetromino_type = tetromino_type
         self._orientation = Tetromino.RIGHT
         self._block_board_coords = self.calc_block_board_coords()
 
@@ -138,6 +137,9 @@ class Tetromino(object):
 
     def get_block_board_coords(self):
         return self._block_board_coords
+
+    def get_position(self):
+        return self._x, self._y
 
     def set_position(self, x, y):
         self._x = x
@@ -219,7 +221,7 @@ class Board(object):
         self._spawn_x = int(grid_width * 1 / 3)
         self._spawn_y = grid_height
         self._queue = queue
-        self._falling_tetromino = None
+        self._falling_tetromino = None  # type: Tetromino
         self.spawn_tetromino()
         self._tetromino_list = []
         self._is_after_move = False
@@ -234,7 +236,38 @@ class Board(object):
 
         self._falling_tetromino.command(command)
         if not self.is_valid_position():
-            self._falling_tetromino.undo_command(command)
+            if command == InputProcessor.ROTATE_CLOCKWISE:
+                self._super_rotation()
+            else:
+                self._falling_tetromino.undo_command(command)
+
+    def _super_rotation(self):
+        direction = None
+        coords = self._falling_tetromino.get_block_board_coords()
+        for coord in coords:
+            if coord[0] < 0:
+                direction = InputProcessor.MOVE_LEFT
+            elif coord[0] >= 20:
+                direction = InputProcessor.MOVE_RIGHT
+            elif coord[1] < 0:
+                direction = InputProcessor.MOVE_DOWN
+
+        if direction is not None:
+            self._falling_tetromino.undo_command(direction)
+            if not self.is_valid_position():
+                self._falling_tetromino.command(direction)
+                self._falling_tetromino.undo_command(InputProcessor.ROTATE_CLOCKWISE)
+        else:
+            self._falling_tetromino.command(InputProcessor.MOVE_LEFT)
+            if not self.is_valid_position():
+                self._falling_tetromino.command(InputProcessor.MOVE_LEFT)
+                if not self.is_valid_position():
+                    self._falling_tetromino.undo_command(InputProcessor.MOVE_LEFT)
+                    self._falling_tetromino.undo_command(InputProcessor.MOVE_LEFT)
+                    self._falling_tetromino.command(InputProcessor.MOVE_RIGHT)
+                    if not self.is_valid_position():
+                        self._falling_tetromino.undo_command(InputProcessor.MOVE_RIGHT)
+                        self._falling_tetromino.undo_command(InputProcessor.ROTATE_CLOCKWISE)
 
     def is_valid_position(self):
         non_falling_block_coords = []

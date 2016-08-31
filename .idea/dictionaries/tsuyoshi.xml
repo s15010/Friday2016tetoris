@@ -2,6 +2,7 @@
   <dictionary name="tsuyoshi">
     <words>
       <w>coords</w>
+      <w>pyglet</w>
       <w>tetromino</w>
     </words>
   </dictionary>
