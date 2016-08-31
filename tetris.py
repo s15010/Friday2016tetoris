@@ -24,10 +24,11 @@ gametypes.TetrominoType.class_init(blocksImage, BLOCK_SIZE)
 
 """ init game state """
 queue = gametypes.NextTetrominoQueue(500, 200, BLOCK_SIZE, QUEUE_SET)
-board = gametypes.Board(BOARD_X, BOARD_Y, GRID_WIDTH, GRID_HEIGHT, BLOCK_SIZE, queue)
+holder = gametypes.Holder(50, 400, BLOCK_SIZE)
+board = gametypes.Board(BOARD_X, BOARD_Y, GRID_WIDTH, GRID_HEIGHT, BLOCK_SIZE, queue, holder)
 info_display = gametypes.InfoDisplay(window, 55, 332, 55, 282)
 input_processor = gametypes.InputProcessor()
-game = gametypes.Game(board, info_display, input_processor, backgroundImage, queue)
+game = gametypes.Game(board, info_display, input_processor, backgroundImage, queue, holder)
 
 
 @window.event

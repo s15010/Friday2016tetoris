@@ -212,7 +212,7 @@ class Tetromino(object):
 class Board(object):
     STARTING_ZONE_HEIGHT = 4
 
-    def __init__(self, x, y, grid_width, grid_height, block_size, queue):
+    def __init__(self, x, y, grid_width, grid_height, block_size, queue, holder):
         self._x = x
         self._y = y
         self._grid_width = grid_width
@@ -225,6 +225,7 @@ class Board(object):
         self.spawn_tetromino()
         self._tetromino_list = []
         self._is_after_move = False
+        self._holder = holder  # type: Holder
 
     def spawn_tetromino(self):
         self._falling_tetromino = self._queue.next()
@@ -233,6 +234,15 @@ class Board(object):
     def command_falling_tetromino(self, command):
         if command != InputProcessor.MOVE_DOWN:
             self._is_after_move = True
+
+        if command == InputProcessor.HOLDING:
+            tetromino, swapped = self._holder.swap(self._falling_tetromino)
+            if swapped:
+                if tetromino is None:
+                    self.spawn_tetromino()
+                else:
+                    self._falling_tetromino = tetromino
+                    self._falling_tetromino.set_position(self._spawn_x, self._spawn_y)
 
         self._falling_tetromino.command(command)
         if not self.is_valid_position():
@@ -326,6 +336,7 @@ class Board(object):
                 game_lost = self.is_in_start_zone(self._falling_tetromino)
                 if not game_lost:
                     self.spawn_tetromino()
+                    self._holder.release()
                 num_cleared_rows = len(full_rows)
         return num_cleared_rows, game_lost
 
@@ -399,7 +410,7 @@ class InfoDisplay(object):
 
 
 class InputProcessor(object):
-    TOGGLE_PAUSE, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_CLOCKWISE = range(5)
+    TOGGLE_PAUSE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_CLOCKWISE, HOLDING, DROP = range(8)
 
     def __init__(self):
         self.action = None
@@ -407,8 +418,10 @@ class InputProcessor(object):
     def process_keypress(self, symbol, modifiers):
         if symbol == pyglet.window.key.SPACE:
             self.action = InputProcessor.TOGGLE_PAUSE
-        elif symbol == pyglet.window.key.LSHIFT:
+        elif symbol == pyglet.window.key.RSHIFT:
             self.action = InputProcessor.ROTATE_CLOCKWISE
+        elif symbol == pyglet.window.key.LSHIFT:
+            self.action = InputProcessor.HOLDING
 
     def process_text_motion(self, motion):
         if motion == pyglet.window.key.MOTION_LEFT:
@@ -417,6 +430,8 @@ class InputProcessor(object):
             self.action = InputProcessor.MOVE_RIGHT
         elif motion == pyglet.window.key.MOTION_DOWN:
             self.action = InputProcessor.MOVE_DOWN
+        elif motion == pyglet.window.key.MOTION_UP:
+            self.action = InputProcessor.DROP
 
     def consume(self):
         action = self.action
@@ -446,7 +461,7 @@ class GameTick(object):
 
 
 class Game(object):
-    def __init__(self, board, info_display, key_input, background_image, queue):
+    def __init__(self, board, info_display, key_input, background_image, queue, holder):
         self._queue = queue
         self._board = board
         self._info_display = info_display
@@ -458,6 +473,7 @@ class Game(object):
         self._score = 0
         self._tick_speed = 0.6
         self._ticker = GameTick()
+        self._holder = holder
 
     def add_rows_cleared(self, rows_cleared):
         self._num_rows_cleared += rows_cleared
@@ -496,6 +512,7 @@ class Game(object):
         self._board.draw()
         self._queue.draw()
         self._info_display.draw()
+        self._holder.draw()
 
 
 class NextTetrominoQueue(object):
@@ -546,3 +563,40 @@ class NextTetrominoQueue(object):
             screen_coords = self.grid_coords_to_screen_coords(
                 self._queue[i].get_block_board_coords())
             self._queue[i].draw(screen_coords)
+
+
+class Holder(object):
+    def __init__(self, x, y, block_size):
+        self._x = x
+        self._y = y
+        self._block_size = block_size
+        self._tetromino = None  # type: Tetromino
+        self._is_swapped = False
+
+    def grid_coords_to_screen_coords(self, coords):
+        screen_coords = []
+        for coord in coords:
+            coord = (self._x + coord[0] * self._block_size,
+                     self._y + coord[1] * self._block_size)
+            screen_coords.append(coord)
+        return screen_coords
+
+    def draw(self):
+        if self._tetromino is None:
+            return
+
+        screen_coords = self.grid_coords_to_screen_coords(
+            self._tetromino.get_block_board_coords())
+        self._tetromino.draw(screen_coords)
+
+    def swap(self, tetromino):
+        if self._is_swapped:
+            return tetromino, False
+        else:
+            self._is_swapped = True
+            self._tetromino, tetromino = tetromino, self._tetromino
+            self._tetromino.set_position(0, 0)
+            return tetromino, True
+
+    def release(self):
+        self._is_swapped = False
